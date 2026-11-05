@@ -135,6 +135,18 @@ DSH web 的 stdout 只在启动阶段刷屏，跑起来之后 `ctx.logger.info()
 - 影子实例（另一端口同一套 profile）能正常启动
 - headless profile 里真跑通过完整链路：`compaction/prune: 2`、`compaction/summary: 0`，模型收到的工具结果只剩 `[pwsh 输出已剔除 · 899 字符]`
 
+## 附带的修复工具（tools/）
+
+万一会话日志已经被写坏了，这两个脚本能把它救回来。
+
+- **`restore_transform.py`** —— 从 zstd 日志里恢复被压缩掉的原文，同时把工具回显剔除。原理是把那条摘要的 `type` 改成未知类型并标 `ignorable: true`，让 `foldSurface` 忽略它，被遮蔽的原文就全部回到 surface。**seq 一个都不动**。
+- **`restore-manual.ps1`** —— 手动执行版：确认 DSH web 已停 → 备份 → 跑 transform → 产物 >1MB 才覆盖。**不碰任何进程**，因为「用自己的进程去终结自己的宿主」这件事天然不可靠。
+
+两条硬要求（踩过才知道）：
+
+1. 读日志必须 `bytes.split(b'\n')`，**不要用 `TextIOWrapper`** —— universal newlines 会把 `\r` 也当行尾，把行拆碎，JSON 全解析失败。
+2. 写日志必须**两帧**：第一帧只装 session 头那一行，第二帧装其余全部。整个文件压成一帧会报 `corrupt Zstandard session log: first frame is not exactly one header line`。
+
 ## 许可
 
 MIT
