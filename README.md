@@ -70,7 +70,7 @@ pnpm add file:/path/to/dsh-compaction-elimination
 
 ### 3. 看
 
-决策日志写到 `logFile`（默认 `C:/Users/Administrator/qq-bridge/state/agents/tiered-compaction.log`，**记得改成你自己的路径**）：
+决策日志默认写到 `~/.dsh/elimination.log`，可以用环境变量 `DSH_ELIMINATION_LOG` 换位置：
 
 ```
 [info] pre-step: U=851759 window=1000000 threshold=800000 (85.2%)
@@ -85,7 +85,7 @@ pnpm add file:/path/to/dsh-compaction-elimination
 | `keepErrorHeadChars` | 800 | 报错结果保留开头多少字符 |
 | `elideErrors` | false | 是否连报错内容也剔干净 |
 | `marker` | `[{name} 输出已剔除 · {chars} 字符{flag}]` | 替换文本模板 |
-| `logFile` | 见上 | 决策日志路径 |
+| `logFile` | 见上 | 决策日志路径（环境变量 `DSH_ELIMINATION_LOG`） |
 
 分档参数（`thresholdRatio` / `highRatio` / `midRatio` / `keepMid` / `keepLow`）目前硬编码在 `lib/host.js` 的 `TIER` 常量里，要调直接改。**没有走 config 是有原因的，见下面第 3 条。**
 
