@@ -12,5 +12,10 @@
   "files": [
     "lib",
     "README.md"
-  ]
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
 }

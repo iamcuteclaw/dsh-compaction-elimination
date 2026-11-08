@@ -1,0 +1,21 @@
+# ============================================================================
+# dsh-compaction-elimination 的 bundle patch
+# ============================================================================
+#
+# 【为什么要有这个文件】
+#   要让这个插件以 bundle 层加载（而不是挂在某个 agent 的 preset 里），
+#   package.json 必须声明 `dsh.bundle.patch` 指向本文件。
+#   声明成 bundle 之后，插件的 ctx 是全局的——
+#   `/elimination` 这种命令才能进 commands 的全局层，UI 里才看得见。
+#
+# 【踩过的坑】
+#   只把包名加进 profile 的 dsh.profile.bundles 是不够的，会报：
+#   「profile bundle "dsh-compaction-elimination" declares no dsh.bundle in its package.json」
+#
+# 【注意】
+#   挂在 bundle 层之后，就不要再在 preset 里重复配一遍（会重复加载）。
+# ============================================================================
+
+- insert:
+    - id: dsh-compaction-elimination
+      name: 'dsh-compaction-elimination'
