@@ -1,6 +1,6 @@
 {
   "name": "dsh-compaction-elimination",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "把压缩之前的「剔除」做狠：tool 回显整段丢弃，只留工作名与痕迹；输入、思考链、回复一律不动。",
   "license": "MIT",
   "type": "module",

@@ -6,7 +6,7 @@
 
 1. **Elimination** —— 把 `tool/result` 的整段回显换成一行 `[pwsh 输出已剔除 · 5000 字符]`。输入参数、思考链、回复、用户原话一个字不动。
 2. **Tiered compaction** —— 剔完如果还是太满，按剔除收益分三档决定压多少、留多少。
-3. **System-prompt elimination** —— 旧的系统提示词（保留最近 8 条非空）在同一个闸门里自动剔除，收益并入上面的 `R`；`/elimination -s` 是它的手动入口。
+3. **System-prompt elimination** —— 旧的系统提示词（保留最近 5 条非空）在同一个闸门里自动剔除，收益并入上面的 `R`；`/elimination -s` 是它的手动入口。
 
 ## 为什么做这个
 
@@ -50,7 +50,7 @@
 
 - `/elimination` —— 手动剔一次工具回显（即自动闸门里工具回显那一路的同一套逻辑：只剔 `tool/result`，输入/思考/回复不动）。不压缩、不摘要。
 - `/elimination -dr` —— 只读报告当前可剔除详情（见下）。
-- `/elimination -s` —— 剔除旧系统提示词（自动闸门里也会做这件事，这条是手动入口）。会话里的 `system/message` 会随系统提示词变更逐条累积（路由支持 in-history 时，每步文本一变就追加一条），历史版本不再生效却仍占着上下文。这条命令**保留最近 8 条非空系统提示词**，更早的每条替换成一行：
+- `/elimination -s` —— 剔除旧系统提示词（自动闸门里也会做这件事，这条是手动入口）。会话里的 `system/message` 会随系统提示词变更逐条累积（路由支持 in-history 时，每步文本一变就追加一条），历史版本不再生效却仍占着上下文。这条命令**保留最近 5 条非空系统提示词**，更早的每条替换成一行：
 
   ```
   [elimination]已剔除 - 系统提示词总X字
@@ -77,11 +77,11 @@
 报告当前可剔除量，**不改 surface、不花模型调用**：
 
 ```
-当前可剔除量:工具输出 X 字(X%);系统提示词 X 字(X%).
+当前可剔除量:工具输出 X token(Y%);系统提示词 Z token(W%).
 ```
 
-- 分子 = 各类可剔除内容的**原始字数**：工具输出按现有门槛与替换规则判定（`minElideChars`、报错保留、标记更短才剔），系统提示词按「保留最近 8 条非空」判定。
-- 分母 = 当前上下文**全部可见文本字数**（所有 surface 节点的 text 块字符数）。
+- 分子 = 各类可剔除内容的**净 token**（原节点价 − 替换标记价），取的是 `tokenMeter.measure()` 的**节点价** —— 和分档的 `R` **同一把尺**。工具输出按现有门槛与替换规则判定（`minElideChars`、报错保留、标记更短才剔），系统提示词按「保留最近 5 条非空」判定。
+- 分母 = **当前占用 `U`**（`measure().totalTokens`）。所以这个百分比可以直接预判档位：`>25%` → high，`>10%` → mid。
 - 百分比保留一位小数；两项**不需要**相加为 100%。
 
 ### `/elimination-debug`（手动触发 / 开关自动）
@@ -198,7 +198,7 @@ DSH web 的 stdout 只在启动阶段刷屏，跑起来之后 `ctx.logger.info()
 - headless profile 里真跑通过完整链路：`compaction/prune: 2`、`compaction/summary: 0`，模型收到的工具结果只剩 `[pwsh 输出已剔除 · 899 字符]`
 - 离线回归（`C:\Users\Administrator\AppData\Local\Temp\opencode\` 下的 `elimination-*.mjs`）：
   - `elimination-tier-test`：TIER 常量 + 闸门先剔工具回显再剔系统提示词再测 U2
-  - `elimination-sysprompt-test`：`-s`/`-dr` 的口径（保留 8 条、head 走 system、尾部走 user+claim、`选旧系统提示词`、`全文字数`）
+  - `elimination-sysprompt-test`：`-s`/`-dr` 的口径（保留 5 条、head 走 system、尾部走 user+claim、`选旧系统提示词`、`全文字数`）
   - `elimination-sysprompt-fold`：用真实 `foldSurface` 验证替换形态（node0 保护的正反例、非头节点换 user/message 合法）
   - `elimination-tokenmeter-test`：锁死「有 claim 的 system 替换会被 contextBreakdown 拒绝」这条约束
   - `elimination-handler-smoke`：真加载插件端到端跑 `/elimination`、`-s`、`-dr`、`-debug`
